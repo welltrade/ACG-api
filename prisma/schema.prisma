@@ -1,0 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int        @id @default(autoincrement())
+  userName       String
+  firstName      String
+  lastName       String
+  phone          String
+  email          String
+  password       String
+  role           UserRole
+  status         UserStatus
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  products       Product[]
+  buyerMessages  Message[]  @relation("buyer_messages")
+  sellerMessages Message[]  @relation("seller_messages")
+}
+
+enum UserRole {
+  ADMIN
+  SELLER
+  BUYER
+}
+
+enum UserStatus {
+  REGISTERED
+  VERIFIED
+  APPROVED
+  ACTIVE
+  DISABLED
+  DELETED
+}
+
+model Product {
+  id          Int             @id @default(autoincrement())
+  status      ProductStatus
+  brand       String
+  model       String
+  madeYear    Int
+  description String
+  price       Float
+  currency    ProductCurrency
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  images      Image[]
+  userId      Int
+  user        User            @relation(fields: [userId], references: [id])
+  messages    Message[]
+}
+
+enum ProductStatus {
+  DRAFT
+  HIDDEN
+  PUBLISHED
+  FROZEN
+  DELETED
+}
+
+enum ProductCurrency {
+  UAH
+  USD
+  EUR
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  rating    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Image {
+  id        Int      @id @default(autoincrement())
+  url       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  message   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+
+  sellerId Int
+  seller   User @relation("seller_messages", fields: [sellerId], references: [id])
+
+  buyerId Int
+  buyer   User @relation("buyer_messages", fields: [buyerId], references: [id])
+}
