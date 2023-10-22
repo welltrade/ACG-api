@@ -16,10 +16,10 @@ model User {
   firstName      String
   lastName       String
   phone          String
-  email          String
+  email          String     @unique
   password       String
-  role           UserRole
-  status         UserStatus
+  role           UserRole   @default(BUYER)
+  status         UserStatus @default(REGISTERED)
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
   products       Product[]
