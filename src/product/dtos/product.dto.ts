@@ -1,5 +1,7 @@
 import {IsNumber, IsPositive, IsString, IsNotEmpty, IsOptional} from "class-validator"
 import { Exclude, Expose } from "class-transformer"
+import { ProductCurrency, ProductStatus } from "@prisma/client";
+
 
 
 export class CreateProductDto {
@@ -38,20 +40,45 @@ export class UpdateProductDto {
 
 export class ProductResponseDto {
 
+
+	id: number;
+	status: ProductStatus;
 	brand: string;
 	model: string;
-
+	madeYear: number;
+	description: string;
 	price: number;
+	currency: ProductCurrency;
+	image: string;
+
 
 	@Exclude()
-	created_at: Date;
-
-	@Expose({name: "createdAt"})
-	transformCreatedAt() {
-		return this.created_at;
-	}
+	userId: number;
+	@Exclude()
+	createdAt: Date;
+	@Exclude()
+	updatedAt: Date;
 
 	constructor(partial: Partial<ProductResponseDto>){
 		Object.assign(this, partial);
 	}
+
+
+
+	// brand: string;
+	// model: string;
+
+	// price: number;
+
+	// @Exclude()
+	// created_at: Date;
+
+	// @Expose({name: "createdAt"})
+	// transformCreatedAt() {
+	// 	return this.created_at;
+	// }
+
+	// constructor(partial: Partial<ProductResponseDto>){
+	// 	Object.assign(this, partial);
+	// }
 }
