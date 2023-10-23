@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from "src/prisma/prisma.service";
 import { ProductResponseDto } from "./dtos/product.dto";
+import { ProductStatus } from "@prisma/client";
 
 
 
@@ -15,13 +16,24 @@ interface UpdateProduct {
 	source?: string;
 }
 
+interface GetProductsParam {
+	brand?: string;
+	price?: {
+		gte?: number;
+		lte?: number;
+	};
+	model?: string;
+	madeYear?: number;
+	status?: ProductStatus;
+}
+
 
 @Injectable()
 export class ProductService {
 
 	constructor(private readonly prismaService: PrismaService){}
 
-	async getAllProducts():Promise<ProductResponseDto[]> {
+	async getAllProducts(filter:GetProductsParam):Promise<ProductResponseDto[]> {
 
     	const products = await this.prismaService.product.findMany({
 			select:{
@@ -38,9 +50,14 @@ export class ProductService {
 						url: true
 					},
 					take: 1
-				}
-			}
+				},
+			},
+			where: filter,
 		});
+
+		if(!products.length) {
+			throw new NotFoundException();
+		}
 		return products.map((product) => {
 			const fetchProduct = {...product, image: product.images[0].url}
 			delete fetchProduct.images
