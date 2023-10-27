@@ -1,7 +1,8 @@
-import {Controller, Get, Post, Put, Delete, Param, Body, ParseIntPipe, Query} from "@nestjs/common"
+import {Controller, Get, Post, Put, Delete, Param, Body, ParseIntPipe, Query, UnauthorizedException} from "@nestjs/common"
 import {ProductService} from "./product.service"
 import { CreateProductDto, ProductResponseDto, UpdateProductDto } from "src/product/dtos/product.dto"
 import { ProductStatus } from "@prisma/client"
+import { User, UserInfo } from "src/user/decorators/user.decorator"
 
 @Controller('product')
 export class ProductController {
@@ -46,30 +47,52 @@ export class ProductController {
 
 	@Post()
 	createProduct(
-		@Body() body: CreateProductDto ,
+		@Body() body: CreateProductDto , @User() user: UserInfo
 	){
-		return this.productService.createProduct(body)
+		return this.productService.createProduct(body, user.id)
 	}
 
 	@Put(':id')
-	updateProduct(
+	async updateProduct(
 		@Param('id', ParseIntPipe) id: number,
 		@Body() body: UpdateProductDto,
+		@User() user: UserInfo
 	){
+		const seller = await this.productService.getSellerByProductId(id);
+
+		if(seller.id !== user.id){
+			throw new UnauthorizedException()
+		}
+
 		return this.productService.updateProductById(id, body)
 	}
 
 	@Delete('softdelete/:id')
-	DeleteProduct(
+	async deleteProduct(
 		@Param('id', ParseIntPipe) id: number,
+		@User() user: UserInfo
 	){
+		const seller = await this.productService.getSellerByProductId(id);
+
+		if(seller.id !== user.id){
+			throw new UnauthorizedException()
+		}
+		
 		return this.productService.updateProductById(id, {status: 'DELETED'})
 	}
 
 	@Delete(':id')
-	HardDeleteProduct(
+	async hardDeleteProduct(
 		@Param('id', ParseIntPipe) id: number,
+		@User() user: UserInfo
 	){
+
+		const seller = await this.productService.getSellerByProductId(id);
+
+		if(seller.id !== user.id){
+			throw new UnauthorizedException()
+		}
+
 		return this.productService.deleteProductById(id)
 	}
 

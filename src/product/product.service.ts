@@ -104,7 +104,6 @@ export class ProductService {
 	}
 
 	async createProduct({
-		userId,
 		status,
         brand,
         model,
@@ -112,7 +111,7 @@ export class ProductService {
         description,
         price,
         currency,
-		images}: CreateProductParams){
+		images}: CreateProductParams, userId: number){
 		const product = await this.prismaService.product.create({
 			data: {
 					userId,
@@ -166,5 +165,33 @@ export class ProductService {
 				id,
 			}
 		})
+	}
+
+	async getSellerByProductId(id: number){
+		const product = await this.prismaService.product.findUnique({
+			where: {
+				id,
+			},
+			select: {
+				user: {
+					select: {
+						id: true,
+						userName: true,
+						firstName: true,
+						lastName: true,
+						phone: true,
+						email: true
+
+					}
+				}
+			}
+		})
+
+		if(!product){
+			throw new NotFoundException()
+		}
+
+		return product.user
+
 	}
 }
