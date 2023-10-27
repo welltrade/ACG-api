@@ -1,10 +1,21 @@
-import {IsNumber, IsPositive, IsString, IsNotEmpty, IsOptional} from "class-validator"
-import { Exclude, Expose } from "class-transformer"
+import {IsNumber, IsPositive, IsString, IsNotEmpty, IsOptional, IsEnum, IsArray, ValidateNested} from "class-validator"
+import { Exclude, Expose, Type } from "class-transformer"
 import { ProductCurrency, ProductStatus } from "@prisma/client";
 
 
-
+class Image {
+	@IsString()
+	@IsNotEmpty()
+	url:string;
+}
 export class CreateProductDto {
+
+	@IsNumber()
+	@IsPositive()
+	userId: number;
+
+	@IsEnum(ProductStatus)
+	status: ProductStatus;
 
 	@IsString()
 	@IsNotEmpty()
@@ -16,25 +27,71 @@ export class CreateProductDto {
 
 	@IsNumber()
 	@IsPositive()
+	madeYear: number;
+
+	// condition:
+
+	@IsString()
+	@IsNotEmpty()
+	description: string;
+
+	@IsNumber()
+	@IsPositive()
 	price: number;
+
+	@IsEnum(ProductCurrency)
+	currency: ProductCurrency;
+
+	@IsArray()
+	@ValidateNested({each: true})
+	@Type(() => Image)
+	images: Image[];
+
+
 
 }
 
 export class UpdateProductDto {
 	@IsOptional()
-	@IsString()
-	@IsNotEmpty()
-	brand: string;
+	@IsEnum(ProductStatus)
+	status?: ProductStatus;
 
 	@IsOptional()
 	@IsString()
 	@IsNotEmpty()
-	model: string;
+	brand?: string;
+
+	@IsOptional()
+	@IsString()
+	@IsNotEmpty()
+	model?: string;
 
 	@IsOptional()
 	@IsNumber()
 	@IsPositive()
-	price: number;
+	madeYear?: number;
+
+	// condition:
+
+	@IsOptional()
+	@IsString()
+	@IsNotEmpty()
+	description?: string;
+
+	@IsOptional()
+	@IsNumber()
+	@IsPositive()
+	price?: number;
+
+	@IsOptional()
+	@IsEnum(ProductCurrency)
+	currency?: ProductCurrency;
+
+	// @IsOptional()
+	// @IsArray()
+	// @ValidateNested({each: true})
+	// @Type(() => Image)
+	// images: Image[];
 
 }
 

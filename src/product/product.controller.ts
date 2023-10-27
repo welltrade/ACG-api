@@ -39,35 +39,38 @@ export class ProductController {
 
   	@Get(':id')
   	getProductById(
-    	@Param('id', ParseIntPipe) id: string
+    	@Param('id', ParseIntPipe) id: number
   	){
-    	console.log({id})
-    	return {}
+    	return this.productService.getProductById(id)
   	}
 
 	@Post()
 	createProduct(
-		@Body() { brand, model, price }: CreateProductDto ,
+		@Body() body: CreateProductDto ,
 	){
-		return { brand , model, price }
+		return this.productService.createProduct(body)
 	}
 
 	@Put(':id')
 	updateProduct(
-		@Param('id', ParseIntPipe) id: string,
+		@Param('id', ParseIntPipe) id: number,
 		@Body() body: UpdateProductDto,
 	){
-		return {body, id}
+		return this.productService.updateProductById(id, body)
 	}
 
 	@Delete('softdelete/:id')
-	DeleteProduct(){
-		return "Change to Deleted"
+	DeleteProduct(
+		@Param('id', ParseIntPipe) id: number,
+	){
+		return this.productService.updateProductById(id, {status: 'DELETED'})
 	}
 
 	@Delete(':id')
-	HardDeleteProduct(){
-		return "Deleted"
+	HardDeleteProduct(
+		@Param('id', ParseIntPipe) id: number,
+	){
+		return this.productService.deleteProductById(id)
 	}
 
 	@Get()
