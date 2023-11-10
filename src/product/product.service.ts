@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from "src/prisma/prisma.service";
 import { ProductResponseDto } from "./dtos/product.dto";
-import { ProductCurrency, ProductStatus } from "@prisma/client";
+import { ProductCondition, ProductCurrency, ProductStatus } from "@prisma/client";
+import { UserInfo } from "src/user/decorators/user.decorator";
 
 
 
@@ -17,23 +18,24 @@ interface UpdateProduct {
 }
 
 interface GetProductsParam {
+	status?: ProductStatus;
 	brand?: string;
+	model?: string;
+	madeYear?: number;
+	condition: ProductCondition;
 	price?: {
 		gte?: number;
 		lte?: number;
 	};
-	model?: string;
-	madeYear?: number;
-	status?: ProductStatus;
 }
 
 interface CreateProductParams {
-        userId: number;
+        // userId: number;
         status: ProductStatus;
         brand: string;
         model: string;
         madeYear: number;
-		// condition:
+		condition: ProductCondition;
         description: string;
         price: number;
         currency: ProductCurrency;
@@ -67,6 +69,7 @@ export class ProductService {
 				brand: true,
 				model: true,
 				madeYear: true,
+				condition: true,
 				description: true,
 				price: true,
 				currency: true,
@@ -76,6 +79,8 @@ export class ProductService {
 					},
 					take: 1
 				},
+				userId: true,
+				createdAt: true
 			},
 			where: filter,
 		});
@@ -108,6 +113,7 @@ export class ProductService {
         brand,
         model,
         madeYear,
+		condition,
         description,
         price,
         currency,
@@ -119,6 +125,7 @@ export class ProductService {
 					brand,
 					model,
 					madeYear,
+					condition,
 					description,
 					price,
 					currency
@@ -193,5 +200,39 @@ export class ProductService {
 
 		return product.user
 
+	}
+
+	async inquire(buyer: UserInfo, productId: number, message: string) {
+		const seller = await this.getSellerByProductId(productId)
+
+		return this.prismaService.message.create({
+			data: {
+				sellerId: seller.id,
+				buyerId: buyer.id,
+				productId,
+				message
+
+			}
+		})
+	}
+
+	getMessagesByProduct(productId: number, ){
+		return this.prismaService.message.findMany({
+			where: {
+				productId
+			},
+			select: {
+				message: true,
+				buyer: {
+					select: {
+						userName: true,
+						firstName: true,
+						lastName: true,
+						phone: true,
+						email: true
+					}
+				}
+			}
+		})
 	}
 }

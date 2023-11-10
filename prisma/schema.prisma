@@ -25,6 +25,7 @@ model User {
   products       Product[]
   buyerMessages  Message[]  @relation("buyer_messages")
   sellerMessages Message[]  @relation("seller_messages")
+  reviews        Review[]
 }
 
 enum UserRole {
@@ -43,20 +44,20 @@ enum UserStatus {
 }
 
 model Product {
-  id          Int             @id @default(autoincrement())
-  status      ProductStatus
+  id          Int              @id @default(autoincrement())
+  status      ProductStatus    @default(DRAFT)
   brand       String
   model       String
   madeYear    Int
-  //condition ProductCondition
+  condition   ProductCondition
   description String
   price       Float
   currency    ProductCurrency
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   images      Image[]
   userId      Int
-  user        User            @relation(fields: [userId], references: [id])
+  user        User             @relation(fields: [userId], references: [id])
   messages    Message[]
 }
 
@@ -64,6 +65,7 @@ enum ProductStatus {
   DRAFT
   HIDDEN
   PUBLISHED
+  SOLD
   FROZEN
   DELETED
 }
@@ -92,6 +94,7 @@ enum ProductCurrency {
 model Review {
   id        Int      @id @default(autoincrement())
   userId    Int
+  user      User     @relation(fields: [userId], references: [id])
   rating    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -1,8 +1,9 @@
 import {Controller, Get, Post, Put, Delete, Param, Body, ParseIntPipe, Query, UnauthorizedException} from "@nestjs/common"
 import {ProductService} from "./product.service"
-import { CreateProductDto, ProductResponseDto, UpdateProductDto } from "src/product/dtos/product.dto"
-import { ProductStatus } from "@prisma/client"
+import { CreateProductDto, InquireDto, ProductResponseDto, UpdateProductDto } from "src/product/dtos/product.dto"
+import { ProductCondition, ProductStatus, UserRole } from "@prisma/client"
 import { User, UserInfo } from "src/user/decorators/user.decorator"
+import {Roles} from "src/decorators/roles.decorator"
 
 @Controller('product')
 export class ProductController {
@@ -16,6 +17,7 @@ export class ProductController {
 		@Query('maxPrice') maxPrice?: string,
 		@Query('model') model?: string,
 		@Query('madeYear') madeYear?: number,
+		@Query('condition') condition?: ProductCondition,
 		@Query('status') status?: ProductStatus,
 		// Quality ?
 		// @Query('brand') brand?: string,
@@ -30,6 +32,7 @@ export class ProductController {
 			...(brand && {brand}) ,
 			...(price && {price}) ,
 			...(model && {model}),
+			...(condition && {condition}),
 			...(madeYear && {madeYear}),
 			...(status && {status}),
 		}
@@ -38,6 +41,7 @@ export class ProductController {
    		return this.productService.getAllProducts(filters)
   	}
 
+
   	@Get(':id')
   	getProductById(
     	@Param('id', ParseIntPipe) id: number
@@ -45,6 +49,7 @@ export class ProductController {
     	return this.productService.getProductById(id)
   	}
 
+	@Roles(UserRole.SELLER, UserRole.ADMIN)
 	@Post()
 	createProduct(
 		@Body() body: CreateProductDto , @User() user: UserInfo
@@ -52,6 +57,8 @@ export class ProductController {
 		return this.productService.createProduct(body, user.id)
 	}
 
+
+	@Roles(UserRole.SELLER, UserRole.ADMIN)
 	@Put(':id')
 	async updateProduct(
 		@Param('id', ParseIntPipe) id: number,
@@ -67,6 +74,8 @@ export class ProductController {
 		return this.productService.updateProductById(id, body)
 	}
 
+
+	@Roles(UserRole.SELLER, UserRole.ADMIN)
 	@Delete('softdelete/:id')
 	async deleteProduct(
 		@Param('id', ParseIntPipe) id: number,
@@ -77,10 +86,11 @@ export class ProductController {
 		if(seller.id !== user.id){
 			throw new UnauthorizedException()
 		}
-		
+
 		return this.productService.updateProductById(id, {status: 'DELETED'})
 	}
 
+	@Roles(UserRole.SELLER, UserRole.ADMIN)
 	@Delete(':id')
 	async hardDeleteProduct(
 		@Param('id', ParseIntPipe) id: number,
@@ -99,5 +109,32 @@ export class ProductController {
 	@Get()
 	getAllProductsByUser(){
 		return {}
+	}
+
+	@Roles(UserRole.BUYER)
+	@Post('/:id/inquire')
+	inquire(
+		@Param('id', ParseIntPipe) productId: number,
+		@User() user: UserInfo,
+		@Body() {message}: InquireDto
+	){
+		return this.productService.inquire(user, productId, message)
+	}
+
+
+	@Roles(UserRole.SELLER, UserRole.ADMIN)
+	@Get('/:id/messages')
+	async getProductMessages(
+		@Param('id', ParseIntPipe) productId: number,
+		@User() user: UserInfo
+	)
+	{
+		const seller = await this.productService.getSellerByProductId(productId);
+
+		if(seller.id !== user.id){
+			throw new UnauthorizedException()
+		}
+
+		return this.productService.getMessagesByProduct(productId)
 	}
 }

@@ -1,6 +1,6 @@
 import {IsNumber, IsPositive, IsString, IsNotEmpty, IsOptional, IsEnum, IsArray, ValidateNested} from "class-validator"
 import { Exclude, Expose, Type } from "class-transformer"
-import { ProductCurrency, ProductStatus } from "@prisma/client";
+import { ProductCondition, ProductCurrency, ProductStatus } from "@prisma/client";
 
 
 class Image {
@@ -10,9 +10,9 @@ class Image {
 }
 export class CreateProductDto {
 
-	@IsNumber()
-	@IsPositive()
-	userId: number;
+	// @IsNumber()
+	// @IsPositive()
+	// userId: number;
 
 	@IsEnum(ProductStatus)
 	status: ProductStatus;
@@ -29,7 +29,8 @@ export class CreateProductDto {
 	@IsPositive()
 	madeYear: number;
 
-	// condition:
+	@IsEnum(ProductCondition)
+	condition: ProductCondition;
 
 	@IsString()
 	@IsNotEmpty()
@@ -71,11 +72,13 @@ export class UpdateProductDto {
 	@IsPositive()
 	madeYear?: number;
 
-	// condition:
+	@IsOptional()
+	@IsEnum(ProductCondition)
+	condition: ProductCondition;
 
 	@IsOptional()
 	@IsString()
-	@IsNotEmpty()
+	// @IsNotEmpty()
 	description?: string;
 
 	@IsOptional()
@@ -103,39 +106,30 @@ export class ProductResponseDto {
 	brand: string;
 	model: string;
 	madeYear: number;
+	condition: ProductCondition;
 	description: string;
 	price: number;
 	currency: ProductCurrency;
 	image: string;
 
 
-	@Exclude()
+	// @Exclude()
 	userId: number;
-	@Exclude()
+	// @Exclude()
 	createdAt: Date;
-	@Exclude()
+	// @Exclude()
 	updatedAt: Date;
 
 	constructor(partial: Partial<ProductResponseDto>){
 		Object.assign(this, partial);
 	}
 
+}
 
+export class InquireDto {
 
-	// brand: string;
-	// model: string;
+	@IsString()
+	@IsNotEmpty()
+	message: string;
 
-	// price: number;
-
-	// @Exclude()
-	// created_at: Date;
-
-	// @Expose({name: "createdAt"})
-	// transformCreatedAt() {
-	// 	return this.created_at;
-	// }
-
-	// constructor(partial: Partial<ProductResponseDto>){
-	// 	Object.assign(this, partial);
-	// }
 }
